@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.438
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VRPN", "vendor\vrpn\vrpn.vcxproj", "{7EE1DB03-16A5-4465-9164-061BE0C88B8C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vrpn", "vendor\vrpn\vrpn.vcxproj", "{7EE1DB03-16A5-4465-9164-061BE0C88B8C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quatlib", "vendor\vrpn\quat\quatlib.vcxproj", "{0C16E98C-A372-4E58-990D-EE276B32644E}"
 EndProject
@@ -23,14 +23,16 @@ Global
 		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Debug|x64.Build.0 = Debug|x64
 		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Debug|x86.ActiveCfg = Debug|Win32
 		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Debug|x86.Build.0 = Debug|Win32
-		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Release|x64.ActiveCfg = Release|Win32
+		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Release|x64.ActiveCfg = Release|x64
+		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Release|x64.Build.0 = Release|x64
 		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Release|x86.ActiveCfg = Release|Win32
 		{7EE1DB03-16A5-4465-9164-061BE0C88B8C}.Release|x86.Build.0 = Release|Win32
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Debug|x64.ActiveCfg = Debug|x64
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Debug|x64.Build.0 = Debug|x64
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Debug|x86.ActiveCfg = Debug|Win32
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Debug|x86.Build.0 = Debug|Win32
-		{0C16E98C-A372-4E58-990D-EE276B32644E}.Release|x64.ActiveCfg = Release|Win32
+		{0C16E98C-A372-4E58-990D-EE276B32644E}.Release|x64.ActiveCfg = Release|x64
+		{0C16E98C-A372-4E58-990D-EE276B32644E}.Release|x64.Build.0 = Release|x64
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Release|x86.ActiveCfg = Release|Win32
 		{0C16E98C-A372-4E58-990D-EE276B32644E}.Release|x86.Build.0 = Release|Win32
 		{5A9FE86D-14AB-4247-8853-31B0717ACAB9}.Debug|x64.ActiveCfg = Debug|x64
@@ -44,5 +46,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {558A76E4-8622-48E7-B559-4BFF6D81D930}
 	EndGlobalSection
 EndGlobal
