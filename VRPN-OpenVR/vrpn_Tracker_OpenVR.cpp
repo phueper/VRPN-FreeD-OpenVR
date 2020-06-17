@@ -11,51 +11,50 @@ vrpn_Tracker_OpenVR::vrpn_Tracker_OpenVR(const std::string& name, vrpn_Connectio
 	vrpn_Tracker::num_sensors = 1;
 }
 
-void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose) {
-	if (!pose->bPoseIsValid) {
-		return;
-	}
-	if (pose->eTrackingResult != vr::TrackingResult_Running_OK) {
-		switch (pose->eTrackingResult) {
-		case vr::TrackingResult_Uninitialized:
-			std::cerr << "[" << name << "] Uninitialized" << std::endl;
-		break;
-		case vr::TrackingResult_Calibrating_InProgress:
-			std::cerr << "[" << name << "] Calibrating (In Progress)" << std::endl;
-		break;
-		case vr::TrackingResult_Calibrating_OutOfRange:
-			std::cerr << "[" << name << "] Calibrating (Out of Range)" << std::endl;
-		break;
-		case vr::TrackingResult_Running_OK:
-			std::cerr << "[" << name << "] Running (OK)" << std::endl;
-		break;
-		case vr::TrackingResult_Running_OutOfRange:
-			std::cerr << "[" << name << "] Running (Out of Range)" << std::endl;
-		break;
-		default:
-			std::cerr << "[" << name << "] Unknown tracking result" << std::endl;
-		break;
-		}
-	}
+void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
+{
+    if (!pose->bPoseIsValid) {
+        std::cerr << " !bPoseIsValid";
+        return;
+    }
 
-	// Sensor, doesn't change since we are tracking individual devices
-	d_sensor = 0;
+    if (pose->eTrackingResult != vr::TrackingResult_Running_OK) {
+        const std::string result =
+            vr::TrackingResult_Uninitialized == pose->eTrackingResult ? "Uninitialized" :
+            vr::TrackingResult_Calibrating_InProgress == pose->eTrackingResult ? "Calibrating In Progress" :
+            vr::TrackingResult_Calibrating_OutOfRange == pose->eTrackingResult ? "Calibrating Out Of Range" :
+            vr::TrackingResult_Running_OutOfRange == pose->eTrackingResult ? "Running Out Of Range" :
+            "Unknown";
+        std::cerr << " " << result;
+        return;
+    }
 
-	// Position
-	pos[0] = pose->mDeviceToAbsoluteTracking.m[0][3];
-	pos[1] = pose->mDeviceToAbsoluteTracking.m[1][3];
-	pos[2] = pose->mDeviceToAbsoluteTracking.m[2][3];
+    // Sensor, doesn't change since we are tracking individual devices
+    d_sensor = 0;
 
-	// Quaternion
-	ConvertSteamVRMatrixToQMatrix(pose->mDeviceToAbsoluteTracking, matrix);
-	q_from_col_matrix(d_quat, matrix);
+    // Position
+    pos[0] = pose->mDeviceToAbsoluteTracking.m[0][3];
+    pos[1] = pose->mDeviceToAbsoluteTracking.m[1][3];
+    pos[2] = pose->mDeviceToAbsoluteTracking.m[2][3];
+
+    std::string pos_msg;
+    {
+        char pos_msg_buf[128];
+        snprintf(pos_msg_buf, sizeof(pos_msg_buf), "%8.4f, %8.4f, %8.4f", pos[0], pos[1], pos[2]);
+        pos_msg = pos_msg_buf;
+    }
+    std::cerr << " pos=[" << pos_msg << "]";
+
+    // Quaternion
+    ConvertSteamVRMatrixToQMatrix(pose->mDeviceToAbsoluteTracking, matrix);
+    q_from_col_matrix(d_quat, matrix);
 
     // Pack message
 	vrpn_gettimeofday(&timestamp, NULL);
 	char msgbuf[1000];
 	vrpn_int32 len = vrpn_Tracker::encode_to(msgbuf);
 	if (d_connection->pack_message(len, timestamp, position_m_id, d_sender_id, msgbuf, vrpn_CONNECTION_LOW_LATENCY)) {
-		std::cerr << "[\" << name << \"] Can't write message" << std::endl;
+		std::cerr << " Can't write message";
 	}
 }
 
