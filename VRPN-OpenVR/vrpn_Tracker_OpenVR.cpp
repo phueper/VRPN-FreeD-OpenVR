@@ -99,7 +99,7 @@ void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
     {
         q_type prerot90;
         q_from_euler(prerot90, 0, 0, -3.1415926 / 2.0);
-        q_mult(q_current, prerot90, q_current);
+        q_mult(q_current, q_current, prerot90);
     };
 
     // quaternion to euler for display
