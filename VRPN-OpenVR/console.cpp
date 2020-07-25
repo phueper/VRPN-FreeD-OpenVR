@@ -33,6 +33,8 @@ void console_setup(HANDLE *p_c_in, HANDLE *p_c_out)
     *p_c_in = h_console_input = GetStdHandle(STD_INPUT_HANDLE);
     *p_c_out = h_console_output = GetStdHandle(STD_OUTPUT_HANDLE);
 
+//    SetStdHandle(STD_ERROR_HANDLE, GetStdHandle(STD_OUTPUT_HANDLE));
+
     // enable window input
     b = SetConsoleMode(h_console_input, ENABLE_WINDOW_INPUT);
     if (!b) e = GetLastError();
@@ -109,7 +111,7 @@ void console_put(char* str)
     char buf[console_window_width], fmt[16];
     snprintf(fmt, sizeof(fmt), "%%-%ds", console_window_width - 2);
     snprintf(buf, console_window_width, fmt, str);
-    fprintf(stderr, "%s\n", buf);
+    fprintf(stdout, "%s\n", buf);
 }
 
 int vscprintf(const char *format, va_list ap)
