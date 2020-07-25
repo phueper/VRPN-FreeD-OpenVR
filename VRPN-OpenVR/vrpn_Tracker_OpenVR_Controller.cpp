@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-vrpn_Tracker_OpenVR_Controller::vrpn_Tracker_OpenVR_Controller(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr) :
-	vrpn_Tracker_OpenVR(name.c_str(), connection, vr),
+vrpn_Tracker_OpenVR_Controller::vrpn_Tracker_OpenVR_Controller(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr, vr::ETrackedDeviceClass device_class_id) :
+	vrpn_Tracker_OpenVR(name.c_str(), connection, vr, device_class_id),
 	vrpn_Analog(name.c_str(), connection),
 	vrpn_Button_Filter(name.c_str(), connection)
 {
