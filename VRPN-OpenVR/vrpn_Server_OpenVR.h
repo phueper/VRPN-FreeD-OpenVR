@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <list>
 #include <array>
 #include <memory>
 #include <openvr.h>
@@ -8,6 +9,7 @@
 #include <vrpn_Connection.h>
 #include "vrpn_Tracker_OpenVR_HMD.h"
 #include "vrpn_Tracker_OpenVR_Controller.h"
+#include "vrpn_Tracker_Camera.h"
 
 /// Sensor numbers in SteamVR and for tracking
 static const auto HMD_SENSOR = 0;
@@ -39,7 +41,7 @@ static const auto TRIGGER_ANALOG_OFFSET = 2;
 
 class vrpn_Server_OpenVR {
 public:
-	vrpn_Server_OpenVR();
+	vrpn_Server_OpenVR(int argc, char *argv[]);
 	~vrpn_Server_OpenVR();
 	void mainloop();
     HANDLE console_in, console_out;
@@ -49,5 +51,8 @@ private:
 	std::unique_ptr<vr::IVRSystem> vr{ nullptr };
 	vrpn_Connection *connection;
     std::map<vr::TrackedDeviceIndex_t, std::unique_ptr<vrpn_Tracker_OpenVR>> devices{};
+    std::list<std::unique_ptr<vrpn_Tracker_Camera>> cameras{};
+    q_vec_type reference_point, reference_position;
+    q_type reference_quat;
 };
 

@@ -5,7 +5,8 @@
 #include "vrpn_Server_OpenVR.h"
 #include "console.h"
 
-vrpn_Server_OpenVR::vrpn_Server_OpenVR() {
+vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
+{
     // Initialize OpenVR
     vr::EVRInitError eError = vr::VRInitError_None;
     vr = std::unique_ptr<vr::IVRSystem>(vr::VR_Init(&eError, vr::VRApplication_Utility/*VRApplication_Background*/)); /// https://github.com/ValveSoftware/openvr/wiki/API-Documentation
@@ -20,6 +21,49 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR() {
     std::string connectionName = ":" + std::to_string(vrpn_DEFAULT_LISTEN_PORT_NO);
     connection = vrpn_create_server_connection(connectionName.c_str());
 
+    // Process arguments
+    if (argc > 1)
+    {
+        for (int p = 1; p < argc;)
+        {
+            if (!strcmp(argv[p], "ref") && (p + 3) <= argc)         // 3 argument: ref <x> <y> <z>
+            {
+                reference_point[0] = atof(argv[p + 1]);
+                reference_point[1] = atof(argv[p + 2]);
+                reference_point[2] = atof(argv[p + 3]);
+                p += 4;
+            }
+            else if (!strcmp(argv[p], "cam") && (p + 5) <= argc)     // 5 argument: cam <NAME> <TRACKER SERIAL> <x> <y> <z>
+            {
+                q_vec_type arm;
+                std::unique_ptr<vrpn_Tracker_Camera> newCAM;
+                std::string name, serial;
+
+                // build name
+                name = "virtual/"; name += argv[p + 1];
+
+                // serial
+                serial = argv[p + 2];
+
+                // build arm
+                arm[0] = atof(argv[p + 3]);
+                arm[1] = atof(argv[p + 4]);
+                arm[2] = atof(argv[p + 5]);
+
+                // build cam class
+                newCAM = std::make_unique<vrpn_Tracker_Camera>(name, connection, serial, arm);
+                cameras.push_back(std::move(newCAM));
+
+                p += 6;
+            }
+            else
+            {
+                std::cerr << "Failed to parse argument [" << argv[p] << "], either unknown or wrong parameters count" << std::endl;
+                exit(1);
+            }
+        }
+    }
+
     console_setup(&console_in, &console_out);
 }
 
@@ -33,7 +77,12 @@ vrpn_Server_OpenVR::~vrpn_Server_OpenVR() {
 }
 
 void vrpn_Server_OpenVR::mainloop() {
-    char* buf = NULL;
+    char *buf = NULL, press;
+    int ref_tracker_idx = -1;
+
+    press = console_keypress(console_in);
+    if (press >= '0' && press <= '9')
+        ref_tracker_idx = press - '0';
 
     // Get Tracking Information
     vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
@@ -46,7 +95,10 @@ void vrpn_Server_OpenVR::mainloop() {
 
     // setup cusrsor to top
     SetConsoleCursorPosition(console_out, { 0, 0 });
+//    console_cls(GetStdHandle(STD_ERROR_HANDLE));
+//    console_cls(GetStdHandle(STD_OUTPUT_HANDLE));
 
+    // show built info
     buf = NULL;
     asprintf(&buf, "VRPN/FREE-D for StreamVR. api %s, app built [" __DATE__ " " __TIME__ "]", vr->GetRuntimeVersion());
     console_put(buf);
@@ -151,25 +203,106 @@ void vrpn_Server_OpenVR::mainloop() {
         console_put(buf);
         if (!buf) free(buf);
 
+        /* find camera assiciated with that tracker */
+        for (const auto& ci : cameras)
+        {
+            /* check for serial */
+            if (ci->getTrackerSerial() != device_serial)
+                continue;
+
+            /* do some precomputation */
+            ci->updateTracking(vec, quat, reference_position, reference_quat, reference_point);
+        }
+
+        /* empty line */
+        console_put("");
+
+        /* save tracker data as reference position */
+        if (ref_tracker_idx == unTrackedDevice)
+        {
+            dev->getPosition(reference_position);
+            dev->getRotation(reference_quat);
+        }
+    }
+
+    console_put("Virtual space:");
+    console_put("");
+
+    {
+        /* display reference point */
+        buf = NULL; asprintf(&buf, "        ref=[%8.4f, %8.4f, %8.4f]",
+            reference_point[0], reference_point[1], reference_point[2]);
+        console_put(buf);
+        if (!buf) free(buf);
+
+        /* display reference position and rot */
+        q_vec_type vec;
+        vec[0] = reference_position[0]; vec[1] = reference_position[1]; vec[2] = reference_position[2];
+        q_type quat;
+        quat[0] = reference_quat[0]; quat[1] = reference_quat[1]; quat[2] = reference_quat[2]; quat[3] = reference_quat[3];
+        q_vec_type yawPitchRoll;
+        q_to_euler(yawPitchRoll, quat); // quaternion to euler for display
+        /*
+            resulting vector is:
+
+            [0] - Q_YAW - rotation about Z
+            [1] - Q_PITCH - rotation about Y
+            [2] - Q_ROLL - rotation about X
+        */
+        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[%8.4f, %8.4f, %8.4f]",
+            vec[0], vec[1], vec[2],
+            yawPitchRoll[2] * 180.0 / 3.1415926,
+            yawPitchRoll[1] * 180.0 / 3.1415926,
+            yawPitchRoll[0] * 180.0 / 3.1415926);
+        console_put(buf);
+        if (!buf) free(buf);
+
+        /* empty line */
+        console_put("");
+    }
+#if 1
+    console_put("Virtual cameras:");
+    console_put("");
+
+    /* dump all cameras state */
+    for (const auto& ci : cameras)
+    {
+        /* output name */
+        buf = NULL;  asprintf(&buf, "        %-40s | %-40s", ci->getName().c_str(), ci->getTrackerSerial().c_str());
+        console_put(buf);
+        if (!buf) free(buf);
+
+        /* display position and rot */
+        q_vec_type vec;
+        ci->getPosition(vec);
+        q_type quat;
+        ci->getRotation(quat);
+        q_vec_type yawPitchRoll;
+        q_to_euler(yawPitchRoll, quat); // quaternion to euler for display
+        /*
+            resulting vector is:
+
+            [0] - Q_YAW - rotation about Z
+            [1] - Q_PITCH - rotation about Y
+            [2] - Q_ROLL - rotation about X
+        */
+        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[%8.4f, %8.4f, %8.4f]",
+            vec[0], vec[1], vec[2],
+            yawPitchRoll[2] * 180.0 / 3.1415926,
+            yawPitchRoll[1] * 180.0 / 3.1415926,
+            yawPitchRoll[0] * 180.0 / 3.1415926);
+        console_put(buf);
+        if (!buf) free(buf);
+
         /* empty line */
         console_put("");
     }
 
+    /* empty line */
+    console_put("");
+#endif
     // Send and receive all messages.
     connection->mainloop();
-
-#if 0
-    // iterate controllers
-    for (vr::TrackedDeviceIndex_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++)
-    {
-        auto search = controllers.find(unTrackedDevice);
-        if (search == controllers.end())
-            continue;
-        vrpn_Tracker_OpenVR_Controller *controller = search->second.get();
-        std::cerr << "known:" << controller->getName() << std::endl;
-        
-    }
-#endif
 
     // Bail if the connection is in trouble.
     if (!connection->doing_okay()) {
