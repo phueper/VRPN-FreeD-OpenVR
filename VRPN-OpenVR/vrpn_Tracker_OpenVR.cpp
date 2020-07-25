@@ -37,32 +37,17 @@ static vr::HmdVector3_t GetPosition(vr::HmdMatrix34_t matrix) {
 
 // -------------------------------------------------------------------------------------
 
-vrpn_Tracker_OpenVR::vrpn_Tracker_OpenVR(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr, vr::ETrackedDeviceClass device_class_id) :
-	vrpn_Tracker(name.c_str(), connection), name(name), vr(vr), device_class_id(device_class_id)
+vrpn_Tracker_OpenVR::vrpn_Tracker_OpenVR(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr, vr::TrackedDeviceIndex_t trackedDeviceIndex) :
+	vrpn_Tracker(name.c_str(), connection), name(name), vr(vr), trackedDeviceIndex(trackedDeviceIndex)
 {
 	// Initialize the vrpn_Tracker
     // We track each device separately so this will only ever have one sensor
 	vrpn_Tracker::num_sensors = 1;
+    device_class_id = vr->GetTrackedDeviceClass(trackedDeviceIndex);
 }
 
 void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
 {
-    if (!pose->bPoseIsValid) {
-        std::cerr << " !bPoseIsValid";
-        return;
-    }
-
-    if (pose->eTrackingResult != vr::TrackingResult_Running_OK) {
-        const std::string result =
-            vr::TrackingResult_Uninitialized == pose->eTrackingResult ? "Uninitialized" :
-            vr::TrackingResult_Calibrating_InProgress == pose->eTrackingResult ? "Calibrating In Progress" :
-            vr::TrackingResult_Calibrating_OutOfRange == pose->eTrackingResult ? "Calibrating Out Of Range" :
-            vr::TrackingResult_Running_OutOfRange == pose->eTrackingResult ? "Running Out Of Range" :
-            "Unknown";
-        std::cerr << " " << result;
-        return;
-    }
-
     // Sensor, doesn't change since we are tracking individual devices
     d_sensor = 0;
 
@@ -70,14 +55,6 @@ void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
     pos[0] = pose->mDeviceToAbsoluteTracking.m[0][3];
     pos[1] = pose->mDeviceToAbsoluteTracking.m[1][3];
     pos[2] = pose->mDeviceToAbsoluteTracking.m[2][3];
-
-    std::string pos_msg;
-    {
-        char pos_msg_buf[128];
-        snprintf(pos_msg_buf, sizeof(pos_msg_buf), "%8.4f, %8.4f, %8.4f", pos[0], pos[1], pos[2]);
-        pos_msg = pos_msg_buf;
-    }
-    std::cerr << " pos=[" << pos_msg << "]";
 
     // Quaternion
     q_type q_current;
@@ -98,26 +75,9 @@ void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
     if (device_class_id == vr::TrackedDeviceClass_GenericTracker)
     {
         q_type prerot90;
-        q_from_euler(prerot90, 0, 0, -3.1415926 / 2.0);
+        q_from_euler(prerot90, 0, 0, -3.1415926 / 2.0); // double yaw, double pitch, double roll
         q_mult(q_current, q_current, prerot90);
     };
-
-    // quaternion to euler for display
-    {
-        q_vec_type yawPitchRoll;
-        q_to_euler(yawPitchRoll, q_current);
-        /*
-            resulting vector is:
-
-            [0] - Q_YAW - rotation about Z
-            [1] - Q_PITCH - rotation about Y
-            [2] - Q_ROLL - rotation about X
-        */
-        char pos_msg_buf[128];
-        snprintf(pos_msg_buf, sizeof(pos_msg_buf), "%8.4f, %8.4f, %8.4f", yawPitchRoll[2] * 180.0 / 3.1415926, yawPitchRoll[1] * 180.0 / 3.1415926, yawPitchRoll[0] * 180.0 / 3.1415926);
-        pos_msg = pos_msg_buf;
-    }
-    std::cerr << " euler=[" << pos_msg << "]";
 
     // save it
     d_quat[0] = q_current[0];
@@ -132,6 +92,26 @@ void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
 	if (d_connection->pack_message(len, timestamp, position_m_id, d_sender_id, msgbuf, vrpn_CONNECTION_LOW_LATENCY)) {
 		std::cerr << " Can't write message";
 	}
+}
+
+void vrpn_Tracker_OpenVR::getRotation(q_type& q_current)
+{
+    q_current[0] = d_quat[0];
+    q_current[1] = d_quat[1];
+    q_current[2] = d_quat[2];
+    q_current[3] = d_quat[3];
+}
+
+void vrpn_Tracker_OpenVR::getPosition(q_vec_type& vec)
+{
+    vec[0] = pos[0];
+    vec[1] = pos[1];
+    vec[2] = pos[2];
+}
+
+std::string vrpn_Tracker_OpenVR::getName()
+{
+    return name;
 }
 
 void vrpn_Tracker_OpenVR::mainloop() {

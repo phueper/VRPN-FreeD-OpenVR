@@ -13,9 +13,9 @@ class vrpn_Tracker_OpenVR_Controller :
 {
 public:
 	vrpn_Tracker_OpenVR_Controller() = delete;
-	vrpn_Tracker_OpenVR_Controller(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr, vr::ETrackedDeviceClass device_class_id);
+	vrpn_Tracker_OpenVR_Controller(const std::string& name, vrpn_Connection* connection, vr::IVRSystem * vr, vr::TrackedDeviceIndex_t trackedDeviceIndex);
 	void mainloop();
-	void updateController(vr::TrackedDeviceIndex_t unTrackedDevice);
 private:
+    void updateController();
     vr::VRControllerState_t pControllerState;
 };

@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="console.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="vrpn_Server_OpenVR.cpp" />
     <ClCompile Include="vrpn_Tracker_OpenVR.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="vrpn_Tracker_OpenVR_HMD.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="console.h" />
     <ClInclude Include="vrpn_Server_OpenVR.h" />
     <ClInclude Include="vrpn_Tracker_OpenVR.h" />
     <ClInclude Include="vrpn_Tracker_OpenVR_Controller.h" />
