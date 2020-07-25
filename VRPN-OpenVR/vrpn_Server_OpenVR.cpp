@@ -78,7 +78,7 @@ void vrpn_Server_OpenVR::mainloop() {
                 vrpn_Tracker_OpenVR_HMD *hmd{nullptr};
                 auto search = hmds.find(unTrackedDevice);
                 if (search == hmds.end()) {
-                    std::unique_ptr<vrpn_Tracker_OpenVR_HMD> newHMD = std::make_unique<vrpn_Tracker_OpenVR_HMD>(device_name, connection, vr.get());
+                    std::unique_ptr<vrpn_Tracker_OpenVR_HMD> newHMD = std::make_unique<vrpn_Tracker_OpenVR_HMD>(device_name, connection, vr.get(), device_class_id);
                     hmd = newHMD.get();
                     hmds[unTrackedDevice] = std::move(newHMD);
                 } else {
@@ -105,7 +105,7 @@ void vrpn_Server_OpenVR::mainloop() {
                 vrpn_Tracker_OpenVR_Controller *controller{nullptr};
                 auto search = controllers.find(unTrackedDevice);
                 if (search == controllers.end()) {
-                    std::unique_ptr<vrpn_Tracker_OpenVR_Controller> newController = std::make_unique<vrpn_Tracker_OpenVR_Controller>(device_name, connection, vr.get());
+                    std::unique_ptr<vrpn_Tracker_OpenVR_Controller> newController = std::make_unique<vrpn_Tracker_OpenVR_Controller>(device_name, connection, vr.get(), device_class_id);
                     controller = newController.get();
                     controllers[unTrackedDevice] = std::move(newController);
                 } else {
