@@ -71,7 +71,7 @@ void vrpn_Tracker_OpenVR::updateTracking(vr::TrackedDevicePose_t *pose)
     q_current[3] = q_current_o.w;
 #endif
 
-    // prerotate
+    // prerotate HTC Vive Tracker
     if (device_class_id == vr::TrackedDeviceClass_GenericTracker)
     {
         q_type prerot90;
