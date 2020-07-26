@@ -7,6 +7,9 @@
 
 vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
 {
+    std::string connectionName = "";
+    int listen_vrpn_port = vrpn_DEFAULT_LISTEN_PORT_NO;
+
     // Initialize OpenVR
     vr::EVRInitError eError = vr::VRInitError_None;
     vr = std::unique_ptr<vr::IVRSystem>(vr::VR_Init(&eError, vr::VRApplication_Utility/*VRApplication_Background*/)); /// https://github.com/ValveSoftware/openvr/wiki/API-Documentation
@@ -17,24 +20,32 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
         exit(1);
     };
 
-    // Initialize VRPN Connection
-    std::string connectionName = ":" + std::to_string(vrpn_DEFAULT_LISTEN_PORT_NO);
-    connection = vrpn_create_server_connection(connectionName.c_str());
-
     // Process arguments
     if (argc > 1)
     {
         for (int p = 1; p < argc;)
         {
-            if (!strcmp(argv[p], "ref") && (p + 3) <= argc)         // 3 argument: ref <x> <y> <z>
+            if (!strcmp(argv[p], "port") && (p + 1) <= argc)        // 1 argument: port <listen port>
+            {
+                listen_vrpn_port = atoi(argv[p + 1]);
+                p += 2;
+            }
+            else if (!strcmp(argv[p], "ref") && (p + 3) <= argc)    // 3 argument: ref <x> <y> <z>
             {
                 reference_point[0] = atof(argv[p + 1]);
                 reference_point[1] = atof(argv[p + 2]);
                 reference_point[2] = atof(argv[p + 3]);
                 p += 4;
             }
-            else if (!strcmp(argv[p], "cam") && (p + 5) <= argc)     // 5 argument: cam <NAME> <TRACKER SERIAL> <x> <y> <z>
+            else if (!strcmp(argv[p], "cam") && (p + 5) <= argc)    // 5 argument: cam <NAME> <TRACKER SERIAL> <x> <y> <z>
             {
+                // Initialize VRPN Connection
+                if (connectionName == "")
+                {
+                    connectionName = ":" + std::to_string(listen_vrpn_port);
+                    connection = vrpn_create_server_connection(connectionName.c_str());
+                }
+
                 q_vec_type arm;
                 std::unique_ptr<vrpn_Tracker_Camera> newCAM;
                 std::string name, serial;
@@ -62,6 +73,13 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
                 exit(1);
             }
         }
+    }
+
+    // Initialize VRPN Connection
+    if (connectionName == "")
+    {
+        connectionName = ":" + std::to_string(listen_vrpn_port);
+        connection = vrpn_create_server_connection(connectionName.c_str());
     }
 
     console_setup(&console_in, &console_out);
@@ -195,11 +213,11 @@ void vrpn_Server_OpenVR::mainloop() {
             [1] - Q_PITCH - rotation about Y
             [2] - Q_ROLL - rotation about X
         */
-        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[%8.4f, %8.4f, %8.4f]",
+        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[Yaw/Z=%8.4f, Pitch/Y=%8.4f, Roll/X=%8.4f]",
             vec[0], vec[1], vec[2],
-            yawPitchRoll[2] * 180.0 / 3.1415926,
+            yawPitchRoll[0] * 180.0 / 3.1415926,
             yawPitchRoll[1] * 180.0 / 3.1415926,
-            yawPitchRoll[0] * 180.0 / 3.1415926);
+            yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
         if (!buf) free(buf);
 
@@ -249,11 +267,11 @@ void vrpn_Server_OpenVR::mainloop() {
             [1] - Q_PITCH - rotation about Y
             [2] - Q_ROLL - rotation about X
         */
-        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[%8.4f, %8.4f, %8.4f]",
+        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[Yaw/Z=%8.4f, Pitch/Y=%8.4f, Roll/X=%8.4f]",
             vec[0], vec[1], vec[2],
-            yawPitchRoll[2] * 180.0 / 3.1415926,
+            yawPitchRoll[0] * 180.0 / 3.1415926,
             yawPitchRoll[1] * 180.0 / 3.1415926,
-            yawPitchRoll[0] * 180.0 / 3.1415926);
+            yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
         if (!buf) free(buf);
 
@@ -286,11 +304,11 @@ void vrpn_Server_OpenVR::mainloop() {
             [1] - Q_PITCH - rotation about Y
             [2] - Q_ROLL - rotation about X
         */
-        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[%8.4f, %8.4f, %8.4f]",
+        buf = NULL; asprintf(&buf, "        pos=[%8.4f, %8.4f, %8.4f], euler=[Yaw/Z=%8.4f, Pitch/Y=%8.4f, Roll/X=%8.4f]",
             vec[0], vec[1], vec[2],
-            yawPitchRoll[2] * 180.0 / 3.1415926,
+            yawPitchRoll[0] * 180.0 / 3.1415926,
             yawPitchRoll[1] * 180.0 / 3.1415926,
-            yawPitchRoll[0] * 180.0 / 3.1415926);
+            yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
         if (!buf) free(buf);
 
