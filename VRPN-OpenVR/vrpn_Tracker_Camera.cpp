@@ -16,16 +16,93 @@ vrpn_Tracker_Camera::vrpn_Tracker_Camera(const std::string& name, vrpn_Connectio
     vrpn_Tracker::num_sensors = 1;
 }
 
-void vrpn_Tracker_Camera::updateTracking(q_vec_type& tracker_pos, q_type& tracker_quat, q_vec_type& reference_pos, q_type& reference_quat, q_vec_type& reference_point)
-{
-    pos[0] = tracker_pos[0];
-    pos[1] = tracker_pos[1];
-    pos[2] = tracker_pos[2];
+/*
+    OpenVR world:
 
-    d_quat[0] = tracker_quat[0];
-    d_quat[1] = tracker_quat[1];
-    d_quat[2] = tracker_quat[2];
-    d_quat[3] = tracker_quat[3];
+        right-handed system
+        +y is up
+        +x is to the right
+        -z is forward
+        Distance unit is  meters
+
+    UE4 world:
+
+        Unreal uses a right-handed, Z-up coordinate system.
+        +x - forward
+        +y - right
+        +z - up
+
+*/
+static inline void quat_openvr_to_ue4(q_type src, q_type& dst)
+{
+#if 0 // lets do preroate early
+    q_type prerot90, tmp;
+
+    q_from_euler(prerot90, 0, 0, -3.1415926 / 2.0); // double yaw, double pitch, double roll
+    q_mult(tmp, src, prerot90);
+
+    dst[0] = -tmp[2];
+    dst[1] = tmp[0];
+    dst[2] = tmp[1];
+    dst[3] = -tmp[3];
+#else
+    dst[0] = -src[2];
+    dst[1] = src[0];
+    dst[2] = src[1];
+    dst[3] = src[3];
+#endif
+}
+
+static inline void vec_openvr_to_ue4(q_vec_type src, q_vec_type& dst)
+{
+    dst[0] = -src[2];
+    dst[1] = src[0];
+    dst[2] = src[1];
+}
+
+void vrpn_Tracker_Camera::updateTracking(q_vec_type tracker_pos, q_type tracker_quat, q_vec_type reference_pos, q_type reference_quat, q_vec_type reference_point)
+{
+    q_type ue4_tracker_quat, ue4_reference_quat;
+
+    // translate all quats to UE4
+    quat_openvr_to_ue4(tracker_quat, ue4_tracker_quat);
+    quat_openvr_to_ue4(reference_quat, ue4_reference_quat);
+
+    // cam re-rotation
+    q_type i_ue4_reference_quat;
+    q_invert(i_ue4_reference_quat, ue4_reference_quat);
+    q_mult(d_quat, ue4_tracker_quat, i_ue4_reference_quat);
+
+    // -------------------------------------------------------
+
+    q_vec_type ue4_tracker_pos, ue4_reference_pos;
+
+    // translate all pos to UE4
+
+    vec_openvr_to_ue4(tracker_pos, ue4_tracker_pos);
+    vec_openvr_to_ue4(reference_pos, ue4_reference_pos);
+
+    // find relative vector of movement
+    q_vec_subtract(pos, ue4_tracker_pos, ue4_reference_pos);
+
+    // get the initial rotation of refernce quat
+    q_vec_type yawPitchRoll;
+    q_to_euler(yawPitchRoll, ue4_reference_quat);
+
+    // do a rotation of it
+    q_type rot_z;
+    q_from_euler(rot_z, yawPitchRoll[0], 0, 0);
+    q_xform(pos, rot_z, pos);
+
+    // add reference point
+    q_vec_add(pos, pos, reference_point);
+
+    // add arm
+    q_vec_type arm_vec;
+    q_type arm_quat;
+    q_invert(arm_quat, d_quat);
+    q_xform(arm_vec, arm_quat, arm);
+    q_vec_add(pos, pos, arm_vec);
 
     // Pack message
 	vrpn_gettimeofday(&timestamp, NULL);
