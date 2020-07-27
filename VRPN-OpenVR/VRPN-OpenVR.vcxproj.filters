@@ -36,6 +36,9 @@
     <ClCompile Include="vrpn_Tracker_Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FreeD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vrpn_Tracker_OpenVR_HMD.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vrpn_Tracker_Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

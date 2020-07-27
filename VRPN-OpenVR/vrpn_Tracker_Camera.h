@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <string>
 #include <vrpn_Tracker.h>
 //#include "vrpn_Tracker_OpenVR.h"
@@ -16,11 +17,17 @@ public:
     void getPosition(q_vec_type& vec);
     std::string getName();
     std::string getTrackerSerial();
+    void freedAdd(char *host_port);
 
 protected:
+    void freedSend();
+
 private:
     q_vec_type arm;
     std::string name;
     std::string tracker_serial;
+    std::list<std::string> freed_targets;
+    std::list<struct sockaddr_in> freed_sockaddr;
+    int freed_socket;
 };
 

@@ -31,7 +31,20 @@ BOOL WINAPI handleConsoleSignalsWin(DWORD signaltype)
 }
 #endif
 
+#define WS_VER_MAJOR 2
+#define WS_VER_MINOR 2
+
 int main(int argc, char *argv[]) {
+#if 0
+    // init winsock
+    WSADATA wsaData;
+    WSAStartup
+    (
+        ((unsigned long)WS_VER_MAJOR) |
+        (((unsigned long)WS_VER_MINOR) << 8),
+        &wsaData
+    );
+#endif
     server = std::make_unique<vrpn_Server_OpenVR>(argc, argv);
     while (!done) {
         server->mainloop();

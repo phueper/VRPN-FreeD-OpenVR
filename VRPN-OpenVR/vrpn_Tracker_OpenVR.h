@@ -24,5 +24,6 @@ private:
 	std::string name;
 	q_matrix_type matrix;
 	static void ConvertSteamVRMatrixToQMatrix(const vr::HmdMatrix34_t &matPose, q_matrix_type &matrix);
+
 };
 

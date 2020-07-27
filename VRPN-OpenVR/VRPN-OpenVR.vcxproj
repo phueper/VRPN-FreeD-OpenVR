@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="FreeD.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="vrpn_Server_OpenVR.cpp" />
     <ClCompile Include="vrpn_Tracker_Camera.cpp" />
@@ -157,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="console.h" />
+    <ClInclude Include="FreeD.h" />
     <ClInclude Include="vrpn_Server_OpenVR.h" />
     <ClInclude Include="vrpn_Tracker_Camera.h" />
     <ClInclude Include="vrpn_Tracker_OpenVR.h" />

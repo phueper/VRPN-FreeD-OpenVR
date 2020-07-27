@@ -2,10 +2,10 @@
 #include <openvr.h>
 #include <quat.h>
 #include <iostream>
-
+#include "FreeD.h"
 
 vrpn_Tracker_Camera::vrpn_Tracker_Camera(const std::string& name, vrpn_Connection* connection, const std::string& tracker_serial, q_vec_type _arm) :
-	vrpn_Tracker(name.c_str(), connection), name(name), tracker_serial(tracker_serial)
+	vrpn_Tracker(name.c_str(), connection), name(name), tracker_serial(tracker_serial), freed_socket(-1)
 {
     arm[0] = _arm[0];
     arm[1] = _arm[1];
@@ -141,5 +141,75 @@ std::string vrpn_Tracker_Camera::getTrackerSerial()
 void vrpn_Tracker_Camera::mainloop() {
     vrpn_gettimeofday( &(vrpn_Tracker_Camera::timestamp), NULL );
 	vrpn_Tracker::server_mainloop();
+    freedSend();
+}
+
+void vrpn_Tracker_Camera::freedAdd(char *host_port)
+{
+    char *port, *host = strdup(host_port);
+
+    port = strrchr(host, ':');
+    if (port)
+    {
+        struct sockaddr_in addr;
+
+        *port = 0; port++;
+
+        /* prepare address */
+        addr.sin_family = AF_INET;
+        addr.sin_addr.s_addr = inet_addr(host);
+        addr.sin_port = htons((unsigned short)atoi(port));
+
+        /* store address */
+        freed_sockaddr.push_back(addr);
+    }
+
+    free(host);
+}
+
+void vrpn_Tracker_Camera::freedSend()
+{
+    FreeD_D1_t freed;
+    unsigned char buf[FREE_D_D1_PACKET_SIZE];
+
+    /* init socket */
+    if (freed_socket <= 0)
+        freed_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (freed_socket <= 0)
+        return;
+
+    memset(&freed, 0, sizeof(freed));
+
+    freed.ID = 0xff;
+
+    q_vec_type pos;
+    getPosition(pos);
+    freed.X = pos[0];
+    freed.Y = pos[1];
+    freed.Z = pos[2];
+
+    q_type quat;
+    getRotation(quat);
+    q_vec_type yawPitchRoll;
+    q_to_euler(yawPitchRoll, quat);
+    freed.Pan = yawPitchRoll[0] * 180.0 / 3.1415926;
+    freed.Roll = yawPitchRoll[2] * 180.0 / 3.1415926;
+    freed.Tilt = yawPitchRoll[1] * 180.0 / 3.1415926;
+
+    FreeD_D1_pack(buf, FREE_D_D1_PACKET_SIZE, &freed);
+
+    for (const struct sockaddr_in /*auto&*/ addr : freed_sockaddr)
+    {
+        sendto
+        (
+            freed_socket,               /* Socket to send result */
+            (char*)buf,                 /* The datagram buffer */
+            sizeof(buf),                /* The datagram lngth */
+            0,                          /* Flags: no options */
+            (struct sockaddr *)&addr,   /* addr */
+            sizeof(struct sockaddr_in)  /* Server address length */
+        );
+    }
 }
 

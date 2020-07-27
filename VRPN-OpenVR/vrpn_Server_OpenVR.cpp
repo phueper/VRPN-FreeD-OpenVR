@@ -63,9 +63,17 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
 
                 // build cam class
                 newCAM = std::make_unique<vrpn_Tracker_Camera>(name, connection, serial, arm);
-                cameras.push_back(std::move(newCAM));
 
                 p += 6;
+
+                /* check if dst for free-d specified */
+                while (p < argc && !strcmp(argv[p], "freed") && (p + 1) <= argc)
+                {
+                    newCAM.get()->freedAdd(argv[p + 1]);
+                    p += 2;
+                }
+
+                cameras.push_back(std::move(newCAM));
             }
             else
             {
@@ -230,6 +238,7 @@ void vrpn_Server_OpenVR::mainloop() {
 
             /* do some precomputation */
             ci->updateTracking(vec, quat, reference_position, reference_quat, reference_point);
+            ci->mainloop();
         }
 
         /* empty line */
