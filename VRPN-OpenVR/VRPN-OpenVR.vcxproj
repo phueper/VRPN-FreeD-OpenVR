@@ -22,7 +22,7 @@
     <ProjectGuid>{5A9FE86D-14AB-4247-8853-31B0717ACAB9}</ProjectGuid>
     <RootNamespace>VRPNVive</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
-    <ProjectName>VRPN-OpenVR</ProjectName>
+    <ProjectName>VRPN-FreeD-OpenVR</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
