@@ -7,6 +7,7 @@
 
 vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
 {
+    int cam_idx = 0;
     std::string connectionName = "";
     int listen_vrpn_port = vrpn_DEFAULT_LISTEN_PORT_NO;
 
@@ -62,7 +63,7 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
                 arm[2] = atof(argv[p + 5]);
 
                 // build cam class
-                newCAM = std::make_unique<vrpn_Tracker_Camera>(name, connection, serial, arm);
+                newCAM = std::make_unique<vrpn_Tracker_Camera>(cam_idx++, name, connection, serial, arm);
 
                 p += 6;
 
