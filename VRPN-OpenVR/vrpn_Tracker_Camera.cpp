@@ -4,8 +4,8 @@
 #include <iostream>
 #include "FreeD.h"
 
-vrpn_Tracker_Camera::vrpn_Tracker_Camera(const std::string& name, vrpn_Connection* connection, const std::string& tracker_serial, q_vec_type _arm) :
-	vrpn_Tracker(name.c_str(), connection), name(name), tracker_serial(tracker_serial), freed_socket(-1)
+vrpn_Tracker_Camera::vrpn_Tracker_Camera(int idx, const std::string& name, vrpn_Connection* connection, const std::string& tracker_serial, q_vec_type _arm) :
+	vrpn_Tracker(name.c_str(), connection), name(name), tracker_serial(tracker_serial), freed_socket(-1), idx(idx)
 {
     arm[0] = _arm[0];
     arm[1] = _arm[1];
@@ -181,13 +181,13 @@ void vrpn_Tracker_Camera::freedSend()
 
     memset(&freed, 0, sizeof(freed));
 
-    freed.ID = 0xff;
+    freed.ID = idx + 1;
 
     q_vec_type pos;
     getPosition(pos);
-    freed.X = pos[0];
-    freed.Y = pos[1];
-    freed.Z = pos[2];
+    freed.X = pos[0] * 1000.0;
+    freed.Y = pos[1] * 1000.0;
+    freed.Z = pos[2] * 1000.0;
 
     q_type quat;
     getRotation(quat);
