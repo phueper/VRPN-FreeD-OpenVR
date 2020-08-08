@@ -170,7 +170,7 @@ void vrpn_Server_OpenVR::mainloop() {
         /* output name */
         buf = NULL;  asprintf(&buf, "[%2d] => %-40s | %-40s", unTrackedDevice, device_name.c_str(), state);
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* create new device or get early added */
         vrpn_Tracker_OpenVR *dev{ nullptr };
@@ -228,7 +228,7 @@ void vrpn_Server_OpenVR::mainloop() {
             yawPitchRoll[1] * 180.0 / 3.1415926,
             yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* find camera assiciated with that tracker */
         for (const auto& ci : cameras)
@@ -261,7 +261,7 @@ void vrpn_Server_OpenVR::mainloop() {
         buf = NULL; asprintf(&buf, "        ref=[%8.4f, %8.4f, %8.4f]",
             reference_point[0], reference_point[1], reference_point[2]);
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* display reference position and rot */
         q_vec_type vec;
@@ -283,7 +283,7 @@ void vrpn_Server_OpenVR::mainloop() {
             yawPitchRoll[1] * 180.0 / 3.1415926,
             yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* empty line */
         console_put("");
@@ -298,7 +298,7 @@ void vrpn_Server_OpenVR::mainloop() {
         /* output name */
         buf = NULL;  asprintf(&buf, "        %-40s | %-40s", ci->getName().c_str(), ci->getTrackerSerial().c_str());
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* display position and rot */
         q_vec_type vec;
@@ -320,7 +320,7 @@ void vrpn_Server_OpenVR::mainloop() {
             yawPitchRoll[1] * 180.0 / 3.1415926,
             yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
-        if (!buf) free(buf);
+        if (buf) free(buf);
 
         /* empty line */
         console_put("");
