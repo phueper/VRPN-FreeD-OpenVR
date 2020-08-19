@@ -44,6 +44,7 @@ public:
 	vrpn_Server_OpenVR(int argc, char *argv[]);
 	~vrpn_Server_OpenVR();
 	void mainloop();
+    int sleep_interval;
     HANDLE console_in, console_out;
     static const std::string getDeviceClassName(vr::ETrackedDeviceClass device_class_id);
     static const std::string getDeviceSerial(vr::TrackedDeviceIndex_t trackedDeviceIndex, vr::IVRSystem * vr);

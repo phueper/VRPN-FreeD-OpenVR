@@ -11,6 +11,8 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
     std::string connectionName = "";
     int listen_vrpn_port = vrpn_DEFAULT_LISTEN_PORT_NO;
 
+    sleep_interval = 1;
+
     // Initialize OpenVR
     vr::EVRInitError eError = vr::VRInitError_None;
     vr = std::unique_ptr<vr::IVRSystem>(vr::VR_Init(&eError, vr::VRApplication_Utility/*VRApplication_Background*/)); /// https://github.com/ValveSoftware/openvr/wiki/API-Documentation
@@ -29,6 +31,11 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
             if (!strcmp(argv[p], "port") && (p + 1) <= argc)        // 1 argument: port <listen port>
             {
                 listen_vrpn_port = atoi(argv[p + 1]);
+                p += 2;
+            }
+            else if (!strcmp(argv[p], "sleep_interval") && (p + 1) <= argc)  // 1 argument: sleep <listen port>
+            {
+                sleep_interval = atoi(argv[p + 1]);
                 p += 2;
             }
             else if (!strcmp(argv[p], "ref") && (p + 3) <= argc)    // 3 argument: ref <x> <y> <z>
@@ -66,6 +73,28 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
                 newCAM = std::make_unique<vrpn_Tracker_Camera>(cam_idx++, name, connection, serial, arm);
 
                 p += 6;
+
+                /* check if dst for free-d specified */
+                while (p < argc && !strcmp(argv[p], "filter"))
+                {
+                    if (!strcmp(argv[p + 1], "kalman"))
+                    {
+                        newCAM.get()->filterAdd(new filter_kalman(atof(argv[p + 2]), atof(argv[p + 3])));
+                        p += 4;
+                    }
+                    else if (!strcmp(argv[p + 1], "exp1"))
+                    {
+                        newCAM.get()->filterAdd(new filter_exp1(atof(argv[p + 2]), atof(argv[p + 3])));
+                        p += 4;
+                    }
+                    else if (!strcmp(argv[p + 1], "exp1dyn"))
+                    {
+                        newCAM.get()->filterAdd(new filter_exp1dyn(atof(argv[p + 2]), atof(argv[p + 3])));
+                        p += 4;
+                    }
+                    else
+                        break;
+                }
 
                 /* check if dst for free-d specified */
                 while (p < argc && !strcmp(argv[p], "freed") && (p + 1) <= argc)
@@ -106,16 +135,18 @@ vrpn_Server_OpenVR::~vrpn_Server_OpenVR() {
 void vrpn_Server_OpenVR::mainloop() {
     char *buf = NULL, press;
     int ref_tracker_idx = -1;
+    struct timeval timestamp;
 
     press = console_keypress(console_in);
     if (press >= '0' && press <= '9')
         ref_tracker_idx = press - '0';
 
     // Get Tracking Information
+    vrpn_gettimeofday(&timestamp, NULL);
     vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
     vr->GetDeviceToAbsoluteTrackingPose(    /// https://github.com/ValveSoftware/openvr/wiki/IVRSystem::GetDeviceToAbsoluteTrackingPose
         vr::TrackingUniverseStanding,
-        0/*float fPredictedSecondsToPhotonsFromNow*/,
+        0 /*float fPredictedSecondsToPhotonsFromNow*/,
         m_rTrackedDevicePose,
         vr::k_unMaxTrackedDeviceCount
     );
@@ -238,7 +269,7 @@ void vrpn_Server_OpenVR::mainloop() {
                 continue;
 
             /* do some precomputation */
-            ci->updateTracking(vec, quat, reference_position, reference_quat, reference_point);
+            ci->updateTracking(vec, quat, reference_position, reference_quat, reference_point, &timestamp);
             ci->mainloop();
         }
 
