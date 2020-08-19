@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     server = std::make_unique<vrpn_Server_OpenVR>(argc, argv);
     while (!done) {
         server->mainloop();
-//        vrpn_SleepMsecs(1);
+        vrpn_SleepMsecs(server->sleep_interval);
     }
     server.reset(nullptr);
     return 0;
