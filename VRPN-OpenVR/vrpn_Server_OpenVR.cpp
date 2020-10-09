@@ -92,6 +92,11 @@ vrpn_Server_OpenVR::vrpn_Server_OpenVR(int argc, char *argv[])
                         newCAM.get()->filterAdd(new filter_exp1dyn(atof(argv[p + 2]), atof(argv[p + 3])));
                         p += 4;
                     }
+                    else if (!strcmp(argv[p + 1], "exp1pasha"))
+                    {
+                        newCAM.get()->filterAdd(new filter_exp1pasha(atof(argv[p + 2]), atof(argv[p + 3])));
+                        p += 4;
+                    }
                     else
                         break;
                 }
@@ -260,7 +265,12 @@ void vrpn_Server_OpenVR::mainloop() {
             yawPitchRoll[2] * 180.0 / 3.1415926);
         console_put(buf);
         if (buf) free(buf);
-
+#if 0
+        buf = NULL; asprintf(&buf, "        spd=[%8.4f, %8.4f, %8.4f]",
+            pose->vVelocity.v[0], pose->vVelocity.v[1], pose->vVelocity.v[2]);
+        console_put(buf);
+        if (buf) free(buf);
+#endif
         /* find camera assiciated with that tracker */
         for (const auto& ci : cameras)
         {

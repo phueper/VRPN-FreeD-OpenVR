@@ -195,3 +195,39 @@ void filter_exp1dyn::process_data(q_vec_type& pos, q_type& rot_quat)
     q_copy(rot_prev, rot_tmp);
 #endif
 }
+
+filter_exp1pasha::filter_exp1pasha(double a, double b)
+{
+    alpha[0] = alpha[1] = alpha[2] = a;
+    betta = b;
+    samples = 0;
+}
+
+void filter_exp1pasha::process_data(q_vec_type& pos, q_type& rot_quat)
+{
+    int i;
+    double d, alpha_pos;
+    q_vec_type pos_tmp;
+
+    if (!samples)
+    {
+        samples++;
+        q_vec_copy(pos_prev, pos);
+        return;
+    }
+
+    for (i = 0; i < 3; i++)
+    {
+        double t;
+        pos_tmp[i] = alpha[i] * pos[i] + (1.0 - alpha[i]) * pos_prev[i];
+
+        t = fabs(pos[i] - pos_tmp[i]);
+
+        alpha[i] = betta * t + (1 - betta) * alpha[i];
+//        alpha[i] *= 0.01;
+    };
+
+    q_vec_copy(pos, pos_tmp);
+    q_vec_copy(pos_prev, pos_tmp);
+}
+

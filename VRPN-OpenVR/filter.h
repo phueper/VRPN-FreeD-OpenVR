@@ -70,3 +70,16 @@ private:
     q_vec_type pos_prev;
     q_vec_type rot_prev;
 };
+
+class filter_exp1pasha : public filter_abstract
+{
+public:
+    filter_exp1pasha(double a_pos, double d_pos);
+    virtual void process_data(q_vec_type& pos, q_type& rot);
+private:
+    int samples;
+    double betta;
+    q_vec_type pos_prev, alpha;
+    q_vec_type rot_prev;
+};
+
