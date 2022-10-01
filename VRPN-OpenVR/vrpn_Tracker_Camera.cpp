@@ -128,8 +128,8 @@ void vrpn_Tracker_Camera::updateTracking(q_vec_type _tracker_pos, q_type _tracke
     q_vec_type arm_vec;
     q_type arm_quat;
     q_invert(arm_quat, d_quat);
-    q_xform(arm_vec, arm_quat, arm);
-    q_vec_add(pos, pos, arm_vec);
+    //q_xform(arm_vec, arm_quat, arm);
+    //q_vec_add(pos, pos, arm_vec);
 
     // Pack message
 #if 0
