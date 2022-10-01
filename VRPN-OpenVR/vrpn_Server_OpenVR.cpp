@@ -278,6 +278,11 @@ void vrpn_Server_OpenVR::mainloop() {
             if (ci->getTrackerSerial() != device_serial)
                 continue;
 
+			buf = NULL;  asprintf(&buf, "        matching virtual device  %-40s | %-40s", ci->getName().c_str(), ci->getTrackerSerial().c_str());
+			console_put(buf);
+			if (buf) free(buf);
+
+
             /* do some precomputation */
             ci->updateTracking(vec, quat, reference_position, reference_quat, reference_point, &timestamp);
             ci->mainloop();
@@ -366,7 +371,7 @@ void vrpn_Server_OpenVR::mainloop() {
         /* empty line */
         console_put("");
 		/*phueper: some debugging */
-		ci->print_latest_report();
+		//ci->print_latest_report();
     }
 
     /* empty line */
