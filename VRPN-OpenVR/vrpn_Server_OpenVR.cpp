@@ -365,6 +365,8 @@ void vrpn_Server_OpenVR::mainloop() {
 
         /* empty line */
         console_put("");
+		/*phueper: some debugging */
+		ci->print_latest_report();
     }
 
     /* empty line */
